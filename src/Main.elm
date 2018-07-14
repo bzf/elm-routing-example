@@ -2,18 +2,19 @@ module Main exposing (..)
 
 import Html exposing (Html, text, div, img)
 import Html.Attributes exposing (src)
+import Navigation
 
 
 ---- MODEL ----
 
 
 type alias Model =
-    {}
+    { history : List Navigation.Location }
 
 
-init : ( Model, Cmd Msg )
-init =
-    ( {}, Cmd.none )
+init : Navigation.Location -> ( Model, Cmd Msg )
+init location =
+    Model [ location ] ! [ Cmd.none ]
 
 
 
@@ -21,12 +22,16 @@ init =
 
 
 type Msg
-    = NoOp
+    = UrlChange Navigation.Location
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    ( model, Cmd.none )
+    case msg of
+        UrlChange location ->
+            ( { model | history = location :: model.history }
+            , Cmd.none
+            )
 
 
 
@@ -35,10 +40,7 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    div []
-        [ img [ src "/logo.svg" ] []
-        , div [] [ text "Your Elm App is working!" ]
-        ]
+    div [] [ text (toString model) ]
 
 
 
@@ -47,9 +49,9 @@ view model =
 
 main : Program Never Model Msg
 main =
-    Html.program
-        { view = view
-        , init = init
+    Navigation.program UrlChange
+        { init = init
+        , view = view
         , update = update
         , subscriptions = always Sub.none
         }
