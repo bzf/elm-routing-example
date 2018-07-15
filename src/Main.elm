@@ -1,7 +1,7 @@
 module Main exposing (..)
 
 import Html exposing (Html, text, div, img)
-import Html.Attributes exposing (src)
+import UrlParser exposing (s)
 import Navigation
 
 
@@ -9,12 +9,12 @@ import Navigation
 
 
 type alias Model =
-    { history : List Navigation.Location }
+    { history : List Route }
 
 
 init : Navigation.Location -> ( Model, Cmd Msg )
 init location =
-    Model [ location ] ! [ Cmd.none ]
+    Model [ fromLocation location ] ! [ Cmd.none ]
 
 
 
@@ -29,9 +29,25 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         UrlChange location ->
-            ( { model | history = location :: model.history }
-            , Cmd.none
-            )
+            { model | history = (fromLocation location) :: model.history } ! []
+
+
+type Route
+    = Home
+    | NotFound
+
+
+urlParser : UrlParser.Parser (Route -> a) a
+urlParser =
+    UrlParser.oneOf
+        [ UrlParser.map Home (s "home")
+        ]
+
+
+fromLocation : Navigation.Location -> Route
+fromLocation location =
+    UrlParser.parsePath urlParser location
+        |> Maybe.withDefault NotFound
 
 
 
